@@ -70,7 +70,7 @@ export class AjaxCancelable {
   }
 
 
-  requestAjax(request?: AjaxRequestPlus): Observable<AjaxResponse> {
+  requestAjax(request?: AjaxRequestPlus): Observable<AjaxResponse | never> {
     if (!this.request && !request) {
       throw new Error('ERROR: AjaxRequest is undefined.')
     }
@@ -116,7 +116,7 @@ export class AjaxCancelable {
   }
 
 
-  requestAjaxAsPromise(request?: AjaxRequestPlus): Promise<AjaxResponse> {
+  requestAjaxAsPromise(request?: AjaxRequestPlus): Promise<AjaxResponse | never> {
     return this.requestAjax(request).toPromise()
   }
 
