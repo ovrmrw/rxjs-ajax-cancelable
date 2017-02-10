@@ -2,17 +2,23 @@ import { Observable } from 'rxjs/Observable'
 import { Subject } from 'rxjs/Subject'
 import { AjaxResponse, AjaxRequest } from 'rxjs/observable/dom/AjaxObservable'
 
-export { AjaxResponse, AjaxRequest }
+// export { AjaxResponse, AjaxRequest }
 
 
 export type AjaxRequestPlus = AjaxRequest & {
-  retry?: number
+  retry?: number,
+  testing?: boolean,
+}
+
+
+export type AjaxResponsePlus = AjaxResponse & {
+  processingTime?: number,
 }
 
 
 export interface AjaxObject {
-  request: AjaxRequest,
-  response: AjaxResponse | null,
-  responseSubject$: Subject<AjaxResponse | null>,
+  request: AjaxRequestPlus,
+  response: AjaxResponsePlus | null,
+  responseSubject$: Subject<AjaxResponsePlus | null>,
   retry: number,
 }

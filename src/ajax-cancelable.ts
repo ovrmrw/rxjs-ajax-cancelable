@@ -13,14 +13,17 @@ import 'rxjs/add/operator/switchMap'
 import 'rxjs/add/operator/retry'
 import 'rxjs/add/operator/catch'
 import 'rxjs/add/operator/toPromise'
+import 'rxjs/add/operator/do'
+import 'rxjs/add/operator/share'
+import 'rxjs/Rx'
 
-import { AjaxResponse, AjaxRequest, AjaxRequestPlus, AjaxObject } from './interfaces'
+import { AjaxResponsePlus, AjaxRequestPlus, AjaxObject } from './interfaces'
 
 
 const DEFAULT_TIMEOUT = 1000 * 10
 const DEFAULT_RETRY = 2
-const DEFAULT_DISPOSE_TIME = 1000 * 1
-
+let DISPOSE_TIME = 1000 * 1
+let TESTING = false
 
 
 export class AjaxCancelable {
@@ -43,11 +46,18 @@ export class AjaxCancelable {
       this.subject$ = new Subject<AjaxObject>()
       this.subject$
         .switchMap(ajaxObj => {
+          const startTime = new Date().getTime()
+          let loopCount = 0
           return Observable.ajax(ajaxObj.request)
             .retry(ajaxObj.retry)
             .catch((err, caught) => {
               if (err) {
-                console.error(err)
+                console.error({
+                  status: err.status,
+                  message: err.message,
+                  url: err.request.url,
+                  response: err.response,
+                })
                 return Observable.of(null)
               } else {
                 return caught
@@ -57,7 +67,10 @@ export class AjaxCancelable {
             .takeUntil(this.canceller$)
             .map(data => {
               if (data) { // "data" is nullable.
-                ajaxObj.response = data
+                ajaxObj.response = {
+                  ...data,
+                  processingTime: new Date().getTime() - startTime,
+                }
               }
               return ajaxObj
             })
@@ -70,7 +83,7 @@ export class AjaxCancelable {
   }
 
 
-  requestAjax(request?: AjaxRequestPlus): Observable<AjaxResponse | never> {
+  requestAjax(request?: AjaxRequestPlus): Observable<AjaxResponsePlus | never> {
     if (!this.request && !request) {
       throw new Error('ERROR: AjaxRequest is undefined.')
     }
@@ -80,13 +93,17 @@ export class AjaxCancelable {
 
     const _request: AjaxRequestPlus = Object.assign({}, this.request, request) // merge request objects.
     _request.timeout = _request.timeout || DEFAULT_TIMEOUT
+    if (_request.testing) {
+      TESTING = true
+      DISPOSE_TIME = 0
+    }
 
-    const responseSubject$ = new Subject<AjaxResponse | null>()
+    const responseSubject$ = new Subject<AjaxResponsePlus | null>()
     const ajaxObj: AjaxObject = {
       request: _request,
       response: null,
       responseSubject$,
-      retry: _request.retry || DEFAULT_RETRY
+      retry: typeof _request.retry === 'number' && _request.retry >= 0 ? _request.retry : DEFAULT_RETRY,
     }
 
     this.subject$.next(ajaxObj)
@@ -97,18 +114,32 @@ export class AjaxCancelable {
         if (data) { // "data" is nullable.
           return true
         } else {
-          console.error('ERROR: AjaxResponse is null.')
+          console.warn('WARN: AjaxResponse is null.')
+          setTimeout(() => responseSubject$.unsubscribe())
           return false
         }
       })
+      .catch((err, caught) => {
+        if (err) {
+          return Observable.of(undefined)
+        } else {
+          return caught
+        }
+      })
+      .share()
 
     observable
       .subscribe({
         complete: () => {
+          if (TESTING) {
+            console.log('responseSubject$ is completed.')
+          }
           this.disposeTimer = setTimeout(() => {
             this.unsubscribeSubjects()
-            // console.log('Ajax subjects are unsubscribed.')
-          }, DEFAULT_DISPOSE_TIME)
+            if (TESTING) {
+              console.log('Ajax subjects are unsubscribed.')
+            }
+          }, DISPOSE_TIME)
         }
       })
 
@@ -116,7 +147,7 @@ export class AjaxCancelable {
   }
 
 
-  requestAjaxAsPromise(request?: AjaxRequestPlus): Promise<AjaxResponse | never> {
+  requestAjaxAsPromise(request?: AjaxRequestPlus): Promise<AjaxResponsePlus | never> {
     return this.requestAjax(request).toPromise()
   }
 

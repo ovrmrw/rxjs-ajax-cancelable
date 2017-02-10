@@ -4,7 +4,7 @@
   ],
   "setupFiles": [],
   "transform": {
-    "^.+\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    "^.+\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
   },
   "testPathDirs": [
     "<rootDir>/src"
@@ -17,5 +17,6 @@
     "node",
     "ts"
   ],
-  "verbose": true
+  "verbose": true,
+  "bail": false
 }

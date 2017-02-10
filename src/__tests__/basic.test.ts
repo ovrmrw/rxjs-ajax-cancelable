@@ -21,6 +21,7 @@ class Action {
       .map(data => data.response)
       .map(res => res.st as number)
       .map(value => value * 1000)
+
   }
 }
 
@@ -35,6 +36,7 @@ describe('timeout: 1000', () => {
       url: 'https://ntp-a1.nict.go.jp/cgi-bin/json',
       crossDomain: true,
       timeout: 1000 * 10,
+      testing: true,
     })
   })
 
@@ -55,6 +57,7 @@ describe('timeout: 10', () => {
       crossDomain: true,
       timeout: 10,
       retry: 0,
+      testing: true,
     })
   })
 
