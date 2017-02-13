@@ -20,9 +20,9 @@ import 'rxjs/Rx'
 import { AjaxResponsePlus, AjaxRequestPlus, AjaxObject } from './interfaces'
 
 
-const DEFAULT_TIMEOUT = 1000 * 10
+const DEFAULT_TIMEOUT = 1000 * 15
 const DEFAULT_RETRY = 2
-let DISPOSE_TIME = 1000 * 1
+let DISPOSE_TIME = 0 // 1000 * 10
 let TESTING = false
 
 
