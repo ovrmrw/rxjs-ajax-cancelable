@@ -17,7 +17,7 @@ import 'rxjs/add/operator/do'
 import 'rxjs/add/operator/share'
 import 'rxjs/Rx'
 
-import { AjaxResponsePlus, AjaxRequestPlus, AjaxObject } from './interfaces'
+import { AjaxResponseOptions, AjaxRequestOptions, AjaxObject } from './interfaces'
 
 
 const DEFAULT_TIMEOUT = 1000 * 15
@@ -33,7 +33,7 @@ export class AjaxCancelable {
 
 
   constructor(
-    private request?: AjaxRequestPlus,
+    private request?: AjaxRequestOptions,
   ) { }
 
 
@@ -83,7 +83,7 @@ export class AjaxCancelable {
   }
 
 
-  requestAjax(request?: AjaxRequestPlus): Observable<AjaxResponsePlus | never> {
+  requestAjax(request?: AjaxRequestOptions): Observable<AjaxResponseOptions | never> {
     if (!this.request && !request) {
       throw new Error('ERROR: AjaxRequest is undefined.')
     }
@@ -91,14 +91,14 @@ export class AjaxCancelable {
     clearTimeout(this.disposeTimer)
     this.invokeSubjects()
 
-    const _request: AjaxRequestPlus = Object.assign({}, this.request, request) // merge request objects.
+    const _request: AjaxRequestOptions = Object.assign({}, this.request, request) // merge request objects.
     _request.timeout = _request.timeout || DEFAULT_TIMEOUT
     if (_request.testing) {
       TESTING = true
       DISPOSE_TIME = 0
     }
 
-    const responseSubject$ = new Subject<AjaxResponsePlus | null>()
+    const responseSubject$ = new Subject<AjaxResponseOptions | null>()
     const ajaxObj: AjaxObject = {
       request: _request,
       response: null,
@@ -147,7 +147,7 @@ export class AjaxCancelable {
   }
 
 
-  requestAjaxAsPromise(request?: AjaxRequestPlus): Promise<AjaxResponsePlus | never> {
+  requestAjaxAsPromise(request?: AjaxRequestOptions): Promise<AjaxResponseOptions | never> {
     return this.requestAjax(request).toPromise()
   }
 

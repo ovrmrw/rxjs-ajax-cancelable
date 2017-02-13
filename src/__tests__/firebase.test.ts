@@ -7,18 +7,18 @@ import 'rxjs/add/operator/map'
 import 'rxjs/add/operator/delay'
 import 'rxjs/add/operator/do'
 
-import { AjaxCancelable, AjaxRequestPlus, AjaxResponsePlus } from '../index'
+import { AjaxCancelable, AjaxRequestOptions, AjaxResponseOptions } from '../index'
 
 
 
 class Action {
   private cancelable: AjaxCancelable
 
-  constructor(request: AjaxRequestPlus) {
+  constructor(request: AjaxRequestOptions) {
     this.cancelable = new AjaxCancelable(request)
   }
 
-  requestDownload$(): Observable<AjaxResponsePlus> {
+  requestDownload$(): Observable<AjaxResponseOptions> {
     return this.cancelable
       .requestAjax()
   }

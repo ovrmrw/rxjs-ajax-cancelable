@@ -1,2 +1,2 @@
 export { AjaxCancelable } from './ajax-cancelable'
-export { AjaxResponsePlus, AjaxRequestPlus } from './interfaces'
+export { AjaxResponseOptions, AjaxRequestOptions } from './interfaces'

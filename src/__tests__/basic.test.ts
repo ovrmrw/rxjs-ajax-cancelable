@@ -4,14 +4,14 @@ import 'rxjs/add/observable/of'
 import 'rxjs/add/operator/map'
 import 'rxjs/add/operator/delay'
 
-import { AjaxCancelable, AjaxRequestPlus } from '../index'
+import { AjaxCancelable, AjaxRequestOptions } from '../index'
 
 
 
 class Action {
   private cancelable: AjaxCancelable
 
-  constructor(request: AjaxRequestPlus) {
+  constructor(request: AjaxRequestOptions) {
     this.cancelable = new AjaxCancelable(request)
   }
 
