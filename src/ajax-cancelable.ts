@@ -15,19 +15,19 @@ import 'rxjs/add/operator/catch'
 import 'rxjs/add/operator/toPromise'
 import 'rxjs/add/operator/do'
 import 'rxjs/add/operator/share'
-import 'rxjs/Rx'
 
 import { AjaxResponseOptions, AjaxRequestOptions, AjaxObject } from './interfaces'
 
 
 const DEFAULT_TIMEOUT = 1000 * 15
 const DEFAULT_RETRY = 2
-let DISPOSE_TIME = 0 // 1000 * 10
+let DISPOSE_TIME = 0 // 1000 * 10 // DEPRECATED
 let TESTING = false
 
 
 export class AjaxCancelable {
-  private disposeTimer: NodeJS.Timer
+  private refCount = 0
+  // private disposeTimer: NodeJS.Timer
   private subject$: Subject<AjaxObject>
   private canceller$: Subject<void>
 
@@ -88,14 +88,15 @@ export class AjaxCancelable {
       throw new Error('ERROR: AjaxRequest is undefined.')
     }
 
-    clearTimeout(this.disposeTimer)
+    this.refCount += 1
+    // clearTimeout(this.disposeTimer)
     this.invokeSubjects()
 
     const _request: AjaxRequestOptions = Object.assign({}, this.request, request) // merge request objects.
     _request.timeout = _request.timeout || DEFAULT_TIMEOUT
     if (_request.testing) {
       TESTING = true
-      DISPOSE_TIME = 0
+      DISPOSE_TIME = 0 // DEPRECATED
     }
 
     const responseSubject$ = new Subject<AjaxResponseOptions | null>()
@@ -134,12 +135,19 @@ export class AjaxCancelable {
           if (TESTING) {
             console.log('responseSubject$ is completed.')
           }
-          this.disposeTimer = setTimeout(() => {
+          // this.disposeTimer = setTimeout(() => {
+          //   this.unsubscribeSubjects()
+          //   if (TESTING) {
+          //     console.log('Ajax subjects are unsubscribed.')
+          //   }
+          // }, DISPOSE_TIME)
+          this.refCount -= 1
+          if (this.refCount === 0) {
             this.unsubscribeSubjects()
             if (TESTING) {
               console.log('Ajax subjects are unsubscribed.')
             }
-          }, DISPOSE_TIME)
+          }
         }
       })
 

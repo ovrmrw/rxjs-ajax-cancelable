@@ -1,6 +1,6 @@
 {
   "name": "rxjs-ajax-cancelable",
-  "version": "0.0.6",
+  "version": "0.0.9",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -45,7 +45,7 @@
     "typescript": "^2.2.0"
   },
   "dependencies": {
-    "rxjs": "^5.1.0"
+    "rxjs": "^5.1.1"
   },
   "peerDependencies": {
     "typescript": "^2.0.0"
