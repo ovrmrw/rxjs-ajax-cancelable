@@ -2,6 +2,8 @@ import { Observable } from 'rxjs/Observable'
 import { Subject } from 'rxjs/Subject'
 import { AjaxResponse, AjaxRequest } from 'rxjs/observable/dom/AjaxObservable'
 
+export { AjaxResponse }
+
 
 export type AjaxRequestOptions = AjaxRequest & {
   retry?: number,
@@ -9,14 +11,14 @@ export type AjaxRequestOptions = AjaxRequest & {
 }
 
 
-export type AjaxResponseOptions = AjaxResponse & {
+export type AjaxResponsePlus = AjaxResponse & {
   processingTime?: number,
 }
 
 
 export interface AjaxObject {
   request: AjaxRequestOptions,
-  response: AjaxResponseOptions | null,
-  responseSubject$: Subject<AjaxResponseOptions | null>,
+  response: AjaxResponsePlus | null,
+  responseSubject$: Subject<AjaxResponsePlus | null>,
   retry: number,
 }

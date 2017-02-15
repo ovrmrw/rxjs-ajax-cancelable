@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable'
 import { Subject } from 'rxjs/Subject'
-// import { AjaxResponse, AjaxRequest } from 'rxjs/observable/dom/AjaxObservable'
+import { AjaxResponse } from 'rxjs/observable/dom/AjaxObservable'
 import 'rxjs/add/observable/of'
 import 'rxjs/add/observable/dom/ajax'
 import 'rxjs/add/operator/take'
@@ -16,12 +16,12 @@ import 'rxjs/add/operator/toPromise'
 import 'rxjs/add/operator/do'
 import 'rxjs/add/operator/share'
 
-import { AjaxResponseOptions, AjaxRequestOptions, AjaxObject } from './interfaces'
+import { AjaxResponsePlus, AjaxRequestOptions, AjaxObject } from './interfaces'
 
 
 const DEFAULT_TIMEOUT = 1000 * 15
 const DEFAULT_RETRY = 2
-let DISPOSE_TIME = 0 // 1000 * 10 // DEPRECATED
+// let DISPOSE_TIME = 0 // 1000 * 10 // DEPRECATED
 let TESTING = false
 
 
@@ -47,7 +47,7 @@ export class AjaxCancelable {
       this.subject$
         .switchMap(ajaxObj => {
           const startTime = new Date().getTime()
-          let loopCount = 0
+          // let loopCount = 0 // DEPRECATED
           return Observable.ajax(ajaxObj.request)
             .retry(ajaxObj.retry)
             .catch((err, caught) => {
@@ -83,7 +83,7 @@ export class AjaxCancelable {
   }
 
 
-  requestAjax(request?: AjaxRequestOptions): Observable<AjaxResponseOptions | never> {
+  requestAjax(request?: AjaxRequestOptions): Observable<AjaxResponsePlus | never> {
     if (!this.request && !request) {
       throw new Error('ERROR: AjaxRequest is undefined.')
     }
@@ -96,10 +96,10 @@ export class AjaxCancelable {
     _request.timeout = _request.timeout || DEFAULT_TIMEOUT
     if (_request.testing) {
       TESTING = true
-      DISPOSE_TIME = 0 // DEPRECATED
+      // DISPOSE_TIME = 0 // DEPRECATED
     }
 
-    const responseSubject$ = new Subject<AjaxResponseOptions | null>()
+    const responseSubject$ = new Subject<AjaxResponsePlus | null>()
     const ajaxObj: AjaxObject = {
       request: _request,
       response: null,
@@ -155,7 +155,7 @@ export class AjaxCancelable {
   }
 
 
-  requestAjaxAsPromise(request?: AjaxRequestOptions): Promise<AjaxResponseOptions | never> {
+  requestAjaxAsPromise(request?: AjaxRequestOptions): Promise<AjaxResponsePlus | never> {
     return this.requestAjax(request).toPromise()
   }
 

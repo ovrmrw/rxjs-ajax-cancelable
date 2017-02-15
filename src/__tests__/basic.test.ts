@@ -4,7 +4,7 @@ import 'rxjs/add/observable/of'
 import 'rxjs/add/operator/map'
 import 'rxjs/add/operator/delay'
 
-import { AjaxCancelable, AjaxRequestOptions } from '../index'
+import { AjaxCancelable, AjaxRequestOptions, AjaxResponsePlus } from '../index'
 
 
 
@@ -17,7 +17,7 @@ class Action {
 
   requestTimestamp$(): Observable<number> {
     return this.cancelable
-      .requestAjax()
+      .requestAjax() // type is Observable<AjaxResponsePlus>
       .map(data => data.response)
       .map(res => res.st as number)
       .map(value => value * 1000)
