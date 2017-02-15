@@ -3,7 +3,7 @@ Cancelable XMLHttpRequest library based on RxJS.
 
 ---
 
-Usage: [\_\_tests\_\_/basic.test.ts](https://github.com/ovrmrw/rxjs-ajax-cancelable/blob/master/src/__tests__/basic.test.ts)
+Usage: [\_\_tests\_\_/firebase.test.ts](https://github.com/ovrmrw/rxjs-ajax-cancelable/blob/master/src/__tests__/firebase.test.ts)
 
 ---
 

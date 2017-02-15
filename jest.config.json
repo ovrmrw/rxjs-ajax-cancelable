@@ -2,7 +2,9 @@
   "collectCoverageFrom": [
     "src/**/*.{js,ts}"
   ],
-  "setupFiles": [],
+  "setupFiles": [
+    "<rootDir>/testing/polyfills.js"
+  ],
   "transform": {
     "^.+\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
   },
