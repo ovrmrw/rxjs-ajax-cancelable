@@ -1,3 +1,5 @@
+import 'core-js'
+import * as fetch from 'isomorphic-fetch'
 import { Observable } from 'rxjs/Observable'
 import { Subject } from 'rxjs/Subject'
 import 'rxjs/add/observable/of'
@@ -14,13 +16,17 @@ import { AjaxCancelable, AjaxRequestOptions, AjaxResponsePlus } from '../index'
 class Action {
   private cancelable: AjaxCancelable
 
-  constructor(request: AjaxRequestOptions) {
+  constructor(private request: AjaxRequestOptions) {
     this.cancelable = new AjaxCancelable(request)
   }
 
   requestDownload$(): Observable<AjaxResponsePlus> {
     return this.cancelable
       .requestAjax()
+  }
+
+  fetchDownload() {
+    return fetch(this.request.url || '', { method: 'GET', mode: 'cors' })
   }
 }
 
@@ -46,8 +52,26 @@ describe('Firebase test', () => {
     expect(res.response).toEqual({ name: 'Jack' })
   })
 
-  it('HTTP requests are cancelable.', (done) => {
-    const results: {}[] = []
+  it('Fetch cannot cancel requests.', (done) => {
+    const results: any[] = []
+    const timer = setInterval(() => {
+      action.fetchDownload()
+        .then(res => res.json() as {})
+        .then(result => results.push(result))
+    }, 50)
+
+    setTimeout(() => {
+      clearInterval(timer)
+      setTimeout(() => {
+        expect(results.length).toBe(3)
+        expect(results).toEqual([{ name: 'Jack' }, { name: 'Jack' }, { name: 'Jack' }])
+        done()
+      }, 2000)
+    }, 190)
+  })
+
+  it('RxJS can cancel requests.', (done) => {
+    const results: any[] = []
     const timer = setInterval(() => {
       action.requestDownload$().toPromise()
         .then(res => results.push(res.response))
@@ -60,7 +84,7 @@ describe('Firebase test', () => {
         expect(results).toEqual([{ name: 'Jack' }])
         done()
       }, 2000)
-    }, 200)
+    }, 190)
   })
 
 })
