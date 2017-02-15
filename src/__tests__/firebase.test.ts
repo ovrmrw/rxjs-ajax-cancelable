@@ -18,12 +18,13 @@ class Action {
     this.cancelable = new AjaxCancelable(request)
   }
 
-  requestDownload$(): Observable<AjaxResponsePlus> {
+  requestCancelable(): Promise<AjaxResponsePlus> {
     return this.cancelable
       .requestAjax()
+      .toPromise()
   }
 
-  fetchDownload() {
+  requestNotCancelable(): Promise<ResponseInterface> {
     return fetch(this.request.url || '')
   }
 }
@@ -45,7 +46,7 @@ describe('Firebase test', () => {
 
 
   it('get json', async () => {
-    const res = await action.requestDownload$().toPromise()
+    const res = await action.requestCancelable()
     expect(res.status).toBe(200)
     expect(res.responseType).toBe('json')
     expect(res.response).toEqual({ name: 'Jack' })
@@ -55,7 +56,7 @@ describe('Firebase test', () => {
   it('Fetch cannot cancel requests.', async () => {
     const results: any[] = []
     for (let i = 0; i < 3; i++) {
-      action.fetchDownload()
+      action.requestNotCancelable()
         .then(res => res.json() as {})
         .then(result => results.push(result))
       await new Promise(resolve => setTimeout(resolve, 50))
@@ -69,7 +70,7 @@ describe('Firebase test', () => {
   it('RxJS can cancel requests.', async () => {
     const results: any[] = []
     for (let i = 0; i < 3; i++) {
-      action.requestDownload$().toPromise()
+      action.requestCancelable()
         .then(res => results.push(res.response))
       await new Promise(resolve => setTimeout(resolve, 50))
     }
