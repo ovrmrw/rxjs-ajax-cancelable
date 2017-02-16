@@ -18,9 +18,9 @@ class Action {
     this.cancelable = new AjaxCancelable(request)
   }
 
-  requestCancelable(): Promise<AjaxResponsePlus> {
+  requestCancelable(request?: AjaxRequestOptions): Promise<AjaxResponsePlus> {
     return this.cancelable
-      .requestAjax()
+      .requestAjax(request)
       .toPromise()
   }
 
@@ -78,5 +78,76 @@ describe('Firebase test', () => {
     expect(results.length).toBe(1)
     expect(results).toEqual([{ name: 'Jack' }])
   })
-
 })
+
+
+
+describe('Prioritize first test', () => {
+  let action: Action
+
+  beforeEach(() => {
+    action = new Action({
+      method: 'GET',
+      crossDomain: true,
+      timeout: 1000 * 5,
+      testing: true,
+      priorityFirst: true,
+    })
+  })
+
+  it('Prioritize the first stream.', async () => {
+    const results: any[] = []
+
+    action.requestCancelable({ url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/ted.json' })
+      .then(res => results.push(res.response))
+    await waiting(50)
+    action.requestCancelable({ url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/jack.json' })
+      .then(res => results.push(res.response))
+    await waiting(50)
+    action.requestCancelable({ url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/jack.json' })
+      .then(res => results.push(res.response))
+
+    await waiting(2000)
+    expect(results.length).toBe(1)
+    expect(results).toEqual([{ name: 'Ted' }])
+  })
+})
+
+
+
+describe('Prioritize last test', () => {
+  let action: Action
+
+  beforeEach(() => {
+    action = new Action({
+      method: 'GET',
+      crossDomain: true,
+      timeout: 1000 * 5,
+      testing: true,
+      priorityFirst: false, // default setting
+    })
+  })
+
+  it('Prioritize the last stream.', async () => {
+    const results: any[] = []
+
+    action.requestCancelable({ url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/jack.json' })
+      .then(res => results.push(res.response))
+    await waiting(50)
+    action.requestCancelable({ url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/jack.json' })
+      .then(res => results.push(res.response))
+    await waiting(50)
+    action.requestCancelable({ url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/ted.json' })
+      .then(res => results.push(res.response))
+
+    await waiting(2000)
+    expect(results.length).toBe(1)
+    expect(results).toEqual([{ name: 'Ted' }])
+  })
+})
+
+
+
+function waiting(timeout: number) {
+  return new Promise(resolve => setTimeout(resolve, timeout))
+}

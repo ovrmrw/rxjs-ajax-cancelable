@@ -7,7 +7,9 @@ import 'rxjs/add/operator/take'
 import 'rxjs/add/operator/takeUntil'
 import 'rxjs/add/operator/map'
 import 'rxjs/add/operator/filter'
+import 'rxjs/add/operator/mergeMap'
 import 'rxjs/add/operator/switchMap'
+import 'rxjs/add/operator/exhaustMap'
 // import 'rxjs/add/operator/timeout'
 // import 'rxjs/add/operator/timeoutWith'
 import 'rxjs/add/operator/retry'
@@ -15,19 +17,18 @@ import 'rxjs/add/operator/catch'
 import 'rxjs/add/operator/toPromise'
 import 'rxjs/add/operator/do'
 import 'rxjs/add/operator/share'
+import 'rxjs/add/operator/partition'
 
 import { AjaxResponsePlus, AjaxRequestOptions, AjaxObject } from './interfaces'
 
 
 const DEFAULT_TIMEOUT = 1000 * 15
 const DEFAULT_RETRY = 2
-// let DISPOSE_TIME = 0 // 1000 * 10 // DEPRECATED
 let TESTING = false
 
 
 export class AjaxCancelable {
   private refCount = 0
-  // private disposeTimer: NodeJS.Timer
   private subject$: Subject<AjaxObject>
   private canceller$: Subject<void>
 
@@ -44,37 +45,19 @@ export class AjaxCancelable {
 
     if (!this.subject$ || this.subject$.isStopped) {
       this.subject$ = new Subject<AjaxObject>()
-      this.subject$
-        .switchMap(ajaxObj => {
-          const startTime = new Date().getTime()
-          // let loopCount = 0 // DEPRECATED
-          return Observable.ajax(ajaxObj.request)
-            .retry(ajaxObj.retry)
-            .catch((err, caught) => {
-              if (err) {
-                console.error({
-                  status: err.status,
-                  message: err.message,
-                  url: err.request.url,
-                  response: err.response,
-                })
-                return Observable.of(null)
-              } else {
-                return caught
-              }
-            })
-            .take(1)
-            .takeUntil(this.canceller$)
-            .map(data => {
-              if (data) { // "data" is nullable.
-                ajaxObj.response = {
-                  ...data,
-                  processingTime: new Date().getTime() - startTime,
-                }
-              }
-              return ajaxObj
-            })
+
+      const obs = this.subject$
+        .partition(ajaxObj => ajaxObj.priorityFirst)
+
+      obs[0] // prioritize the first stream.
+        .exhaustMap(ajaxObj => this.ajaxRequestCallback(ajaxObj))
+        .subscribe({
+          next: ajaxObj => ajaxObj.responseSubject$.next(ajaxObj.response),
+          error: err => { throw err },
         })
+
+      obs[1] // prioritize the last stream.
+        .switchMap(ajaxObj => this.ajaxRequestCallback(ajaxObj))
         .subscribe({
           next: ajaxObj => ajaxObj.responseSubject$.next(ajaxObj.response),
           error: err => { throw err },
@@ -89,14 +72,12 @@ export class AjaxCancelable {
     }
 
     this.refCount += 1
-    // clearTimeout(this.disposeTimer)
     this.invokeSubjects()
 
     const _request: AjaxRequestOptions = Object.assign({}, this.request, request) // merge request objects.
     _request.timeout = _request.timeout || DEFAULT_TIMEOUT
     if (_request.testing) {
       TESTING = true
-      // DISPOSE_TIME = 0 // DEPRECATED
     }
 
     const responseSubject$ = new Subject<AjaxResponsePlus | null>()
@@ -105,6 +86,7 @@ export class AjaxCancelable {
       response: null,
       responseSubject$,
       retry: typeof _request.retry === 'number' && _request.retry >= 0 ? _request.retry : DEFAULT_RETRY,
+      priorityFirst: !!_request.priorityFirst,
     }
 
     this.subject$.next(ajaxObj)
@@ -135,12 +117,7 @@ export class AjaxCancelable {
           if (TESTING) {
             console.log('responseSubject$ is completed.')
           }
-          // this.disposeTimer = setTimeout(() => {
-          //   this.unsubscribeSubjects()
-          //   if (TESTING) {
-          //     console.log('Ajax subjects are unsubscribed.')
-          //   }
-          // }, DISPOSE_TIME)
+
           this.refCount -= 1
           if (this.refCount === 0) {
             this.unsubscribeSubjects()
@@ -172,6 +149,39 @@ export class AjaxCancelable {
     if (this.canceller$) {
       this.canceller$.unsubscribe()
     }
+  }
+
+
+
+  private ajaxRequestCallback(ajaxObj: AjaxObject): Observable<AjaxObject> {
+    const startTime = new Date().getTime()
+
+    return Observable.ajax(ajaxObj.request)
+      .retry(ajaxObj.retry)
+      .catch((err, caught) => {
+        if (err) {
+          console.error({
+            status: err.status,
+            message: err.message,
+            url: err.request.url,
+            response: err.response,
+          })
+          return Observable.of(null)
+        } else {
+          return caught
+        }
+      })
+      .take(1)
+      .takeUntil(this.canceller$)
+      .map(data => {
+        if (data) { // "data" is nullable.
+          ajaxObj.response = {
+            ...data,
+            processingTime: new Date().getTime() - startTime,
+          }
+        }
+        return ajaxObj
+      })
   }
 
 }

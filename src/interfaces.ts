@@ -8,6 +8,7 @@ export { AjaxResponse }
 export type AjaxRequestOptions = AjaxRequest & {
   retry?: number,
   testing?: boolean,
+  priorityFirst?: boolean,
 }
 
 
@@ -21,4 +22,5 @@ export interface AjaxObject {
   response: AjaxResponsePlus | null,
   responseSubject$: Subject<AjaxResponsePlus | null>,
   retry: number,
+  priorityFirst: boolean,
 }
