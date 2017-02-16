@@ -1,6 +1,6 @@
 {
   "name": "rxjs-ajax-cancelable",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -22,8 +22,6 @@
     "LICENSE",
     "index.js",
     "index.d.ts",
-    "esnext.js",
-    "esnext.d.ts",
     "dist",
     "dist-esnext",
     "package.json"
