@@ -1,6 +1,6 @@
 {
   "name": "rxjs-ajax-cancelable",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -26,9 +26,7 @@
     "esnext.d.ts",
     "dist",
     "dist-esnext",
-    "package.json",
-    "tsconfig.json",
-    "tsconfig.esnext.json"
+    "package.json"
   ],
   "author": "Tomohiro Noguchi @ovrmrw",
   "repository": {
