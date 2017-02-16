@@ -1,12 +1,12 @@
 {
   "name": "rxjs-ajax-cancelable",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "",
   "main": "index.js",
   "scripts": {
     "tsc": "tsc --outDir .dest",
-    "prebuild": "rimraf dist",
-    "build": "tsc --outDir dist && tsc --outDir dist-esnext -p tsconfig.esnext.json",
+    "prebuild": "rimraf dist dist-esnext",
+    "build": "tsc --outDir dist && tsc --outDir dist-esnext -p config/tsconfig.esnext.json",
     "test": "npm run jest",
     "test:w": "npm run jest:w",
     "jest": "jest --config=jest.config.json --no-cache",

@@ -137,12 +137,34 @@ export class AjaxCancelable {
   }
 
 
+  requestPriorityLastAjax(request?: AjaxRequestOptions): Observable<AjaxResponsePlus | never> {
+    const _request: AjaxRequestOptions = { ...request, ...{ priorityFirst: false } }
+    return this.requestAjax(_request)
+  }
+
+
+  requestPriorityLastAjaxAsPromise(request?: AjaxRequestOptions): Promise<AjaxResponsePlus | never> {
+    return this.requestPriorityLastAjax(request).toPromise()
+  }
+
+
+  requestPriorityFirstAjax(request?: AjaxRequestOptions): Observable<AjaxResponsePlus | never> {
+    const _request: AjaxRequestOptions = { ...request, ...{ priorityFirst: true } }
+    return this.requestAjax(_request)
+  }
+
+
+  requestPriorityFirstAjaxAsPromise(request?: AjaxRequestOptions): Promise<AjaxResponsePlus | never> {
+    return this.requestPriorityFirstAjax(request).toPromise()
+  }
+
+
   cancelAjax(): void {
     this.canceller$.next()
   }
 
 
-  unsubscribeSubjects(): void {
+  private unsubscribeSubjects(): void {
     if (this.subject$) {
       this.subject$.unsubscribe()
     }
@@ -152,10 +174,8 @@ export class AjaxCancelable {
   }
 
 
-
   private ajaxRequestCallback(ajaxObj: AjaxObject): Observable<AjaxObject> {
     const startTime = new Date().getTime()
-
     return Observable.ajax(ajaxObj.request)
       .retry(ajaxObj.retry)
       .catch((err, caught) => {
