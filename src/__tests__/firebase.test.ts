@@ -55,13 +55,20 @@ describe('Firebase test', () => {
 
   it('Fetch cannot cancel requests.', async () => {
     const results: any[] = []
-    for (let i = 0; i < 3; i++) {
-      action.requestNotCancelable()
-        .then(res => res.json() as {})
-        .then(result => results.push(result))
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
-    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    action.requestNotCancelable()
+      .then(res => res.json() as {})
+      .then(result => results.push(result))
+    await waiting(50)
+    action.requestNotCancelable()
+      .then(res => res.json() as {})
+      .then(result => results.push(result))
+    await waiting(50)
+    action.requestNotCancelable()
+      .then(res => res.json() as {})
+      .then(result => results.push(result))
+
+    await waiting(3000)
     expect(results.length).toBe(3)
     expect(results).toEqual([{ name: 'Jack' }, { name: 'Jack' }, { name: 'Jack' }])
   })
@@ -69,12 +76,17 @@ describe('Firebase test', () => {
 
   it('RxJS can cancel requests.', async () => {
     const results: any[] = []
-    for (let i = 0; i < 3; i++) {
-      action.requestCancelable()
-        .then(res => results.push(res.response))
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
-    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    action.requestCancelable()
+      .then(res => results.push(res.response))
+    await waiting(50)
+    action.requestCancelable()
+      .then(res => results.push(res.response))
+    await waiting(50)
+    action.requestCancelable()
+      .then(res => results.push(res.response))
+
+    await waiting(3000)
     expect(results.length).toBe(1)
     expect(results).toEqual([{ name: 'Jack' }])
   })
@@ -107,7 +119,7 @@ describe('Prioritize first test', () => {
     action.requestCancelable({ url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/jack.json' })
       .then(res => results.push(res.response))
 
-    await waiting(2000)
+    await waiting(3000)
     expect(results.length).toBe(1)
     expect(results).toEqual([{ name: 'Ted' }])
   })
@@ -140,7 +152,7 @@ describe('Prioritize last test', () => {
     action.requestCancelable({ url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/ted.json' })
       .then(res => results.push(res.response))
 
-    await waiting(2000)
+    await waiting(3000)
     expect(results.length).toBe(1)
     expect(results).toEqual([{ name: 'Ted' }])
   })
