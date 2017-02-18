@@ -80,7 +80,7 @@ export class AjaxCancelable {
       TESTING = true
     }
 
-    const responseSubject$ = new Subject<AjaxResponsePlus | null>()
+    const responseSubject$ = new Subject<AjaxResponsePlus>()
     const ajaxObj: AjaxObject = {
       request: _request,
       response: null,
@@ -93,22 +93,7 @@ export class AjaxCancelable {
 
     const observable = responseSubject$
       .take(1)
-      .filter(data => {
-        if (data) { // "data" is nullable.
-          return true
-        } else {
-          console.warn('WARN: AjaxResponse is null.')
-          setTimeout(() => responseSubject$.unsubscribe())
-          return false
-        }
-      })
-      .catch((err, caught) => {
-        if (err) {
-          return Observable.of(undefined)
-        } else {
-          return caught
-        }
-      })
+      .takeUntil(this.canceller$)
       .share()
 
     observable
@@ -117,7 +102,6 @@ export class AjaxCancelable {
           if (TESTING) {
             console.log('responseSubject$ is completed.')
           }
-
           this.refCount -= 1
           if (this.refCount === 0) {
             this.unsubscribeSubjects()
@@ -160,6 +144,7 @@ export class AjaxCancelable {
 
 
   cancelAjax(): void {
+    console.log('Ajax cancel signal is sent.')
     this.canceller$.next()
   }
 
@@ -180,13 +165,15 @@ export class AjaxCancelable {
       .retry(ajaxObj.retry)
       .catch((err, caught) => {
         if (err) {
-          console.error({
-            status: err.status,
-            message: err.message,
-            url: err.request.url,
-            response: err.response,
-          })
-          return Observable.of(null)
+          if (!TESTING) {
+            console.error({
+              status: err.status,
+              message: err.message,
+              url: err.request.url,
+              response: err.response,
+            })
+          }
+          return Observable.of(err)
         } else {
           return caught
         }
@@ -194,11 +181,9 @@ export class AjaxCancelable {
       .take(1)
       .takeUntil(this.canceller$)
       .map(data => {
-        if (data) { // "data" is nullable.
-          ajaxObj.response = {
-            ...data,
-            processingTime: new Date().getTime() - startTime,
-          }
+        ajaxObj.response = {
+          ...data,
+          processingTime: new Date().getTime() - startTime,
         }
         return ajaxObj
       })

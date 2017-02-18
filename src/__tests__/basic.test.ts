@@ -15,13 +15,10 @@ class Action {
     this.cancelable = new AjaxCancelable(request)
   }
 
-  requestTimestamp$(): Observable<number> {
+  requestTimestamp$(): Promise<AjaxResponsePlus> {
     return this.cancelable
-      .requestAjax() // type is Observable<AjaxResponsePlus>
-      .map(data => data.response)
-      .map(res => res.st as number)
-      .map(value => value * 1000)
-
+      .requestAjax()
+      .toPromise()
   }
 }
 
@@ -33,7 +30,7 @@ describe('timeout: 1000', () => {
   beforeEach(() => {
     action = new Action({
       method: 'GET',
-      url: 'https://ntp-a1.nict.go.jp/cgi-bin/json',
+      url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/jack.json',
       crossDomain: true,
       timeout: 1000 * 10,
       testing: true,
@@ -41,8 +38,9 @@ describe('timeout: 1000', () => {
   })
 
   it('will success', async () => {
-    const timestamp = await action.requestTimestamp$().toPromise()
-    expect(timestamp).toBeGreaterThan(0)
+    const data = await action.requestTimestamp$()
+    expect(data.status).toBe(200)
+    expect(data.response).toEqual({ name: 'Jack' })
   })
 })
 
@@ -53,7 +51,7 @@ describe('timeout: 10', () => {
   beforeEach(() => {
     action = new Action({
       method: 'GET',
-      url: 'https://ntp-a1.nict.go.jp/cgi-bin/json',
+      url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/jack.json',
       crossDomain: true,
       timeout: 10,
       retry: 0,
@@ -62,7 +60,7 @@ describe('timeout: 10', () => {
   })
 
   it('will fail because of timeout', async () => {
-    const timestamp = await action.requestTimestamp$().toPromise()
-    expect(timestamp).toBeUndefined()
+    const data = await action.requestTimestamp$()
+    expect(data.status).toBe(0)
   })
 })
