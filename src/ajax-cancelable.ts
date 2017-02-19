@@ -39,11 +39,11 @@ export class AjaxCancelable {
 
 
   private invokeSubjects(): void {
-    if (!this.canceller$ || this.canceller$.isStopped) {
+    if (!this.canceller$ || this.canceller$.isStopped || this.canceller$.closed) {
       this.canceller$ = new Subject<void>()
     }
 
-    if (!this.subject$ || this.subject$.isStopped) {
+    if (!this.subject$ || this.subject$.isStopped || this.subject$.closed) {
       this.subject$ = new Subject<AjaxObject>()
 
       const obs = this.subject$

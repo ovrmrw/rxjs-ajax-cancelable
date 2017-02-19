@@ -27,6 +27,10 @@ class Action {
   requestNotCancelable(): Promise<ResponseInterface> {
     return fetch(this.request.url || '')
   }
+
+  manualCancel(): void {
+    this.cancelable.cancelAjax()
+  }
 }
 
 
@@ -160,10 +164,34 @@ describe('', () => {
     })
   })
 
+
+  describe('cancellation', () => {
+    let action: Action
+
+    beforeEach(() => {
+      action = new Action({
+        method: 'GET',
+        crossDomain: true,
+        testing: true,
+        retry: 0,
+      })
+    })
+
+    it('manual cancel', async () => {
+      let result: any = { description: 'this value will be replaced by undefined.' }
+      action.requestCancelable({ url: 'https://rxjs-ajax-cancelable-d2228.firebaseio.com/users/jack.json' })
+        .then(res => result = res)
+      await waiting(10)
+      action.manualCancel()
+      await waiting()
+      expect(result).toBeUndefined()
+    })
+  })
+
 })
 
 
 
-function waiting(timeout: number) {
+function waiting(timeout: number = 0) {
   return new Promise(resolve => setTimeout(resolve, timeout))
 }
